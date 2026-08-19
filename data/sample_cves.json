@@ -1,0 +1,15 @@
+[
+  {
+    "id": "CVE-2821-28550",
+    "description": "Summary: Acrobat Reader DC versions 2021.001.20150 (and earlier), 2020.001.30020 (and earlier), and 2017.811.30194 (and earlier)",
+    "score": 9.6,
+    "attack_vector": "NETWORK",
+    "attack_complexity": "LOW",
+    "privileges_required": "NONE",
+    "user_interaction": "NONE",
+    "cwe": "CWE-128",
+    "affects_linux": false,
+    "affects_windows": false,
+    "Likely_external_api": true
+  }
+]

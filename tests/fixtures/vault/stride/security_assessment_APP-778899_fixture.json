@@ -1,0 +1,26 @@
+{
+  "system_metadata": {
+    "cmdb_id": "APP-778899",
+    "id": "APP-778899",
+    "name": "ACME MAIL TRIAGE AGENT"
+  },
+  "Spoofing": [
+    {"threat_name": "Sender spoof", "description": "d", "impact": "i", "mitigation": "m"}
+  ],
+  "Tampering": [
+    {"threat_name": "Inject", "description": "d", "impact": "i", "mitigation": "m"}
+  ],
+  "Repudiation": [
+    {"threat_name": "No logs", "description": "d", "impact": "i", "mitigation": "m"}
+  ],
+  "Information Disclosure": [
+    {"threat_name": "Leak", "description": "d", "impact": "i", "mitigation": "m"}
+  ],
+  "Denial of Service": [
+    {"threat_name": "Flood", "description": "d", "impact": "i", "mitigation": "m"}
+  ],
+  "Elevation of Privilege": [
+    {"threat_name": "Escalation", "description": "d", "impact": "i", "mitigation": "m"}
+  ],
+  "dread_assessment": []
+}

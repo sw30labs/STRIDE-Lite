@@ -1,0 +1,78 @@
+risk_report:
+  title: "Cybersecurity Risk Assessment Report for ACME Bank Remote Access VDI"
+  content: |
+    # Cybersecurity Risk Assessment Report for ACME Bank Remote Access VDI
+
+    ### Background
+    Fictional sample used only as format guidance. ACME Bank is a demo organization.
+    It is not a description of any real environment.
+
+    ## VDI Exposure Categories
+    | Exposure Category | Exposure Sub-Category | Treatment |
+    |-------------------|-----------------------|-----------|
+    | External | Public Access | Rate limiting and monitoring |
+    | External | Partner-Specific Access | Review partner access logs |
+    | Internal | Inter-Application Access | Validate access controls regularly |
+
+    ## Example threats
+    1. Stolen credentials used against an internet-facing VDI gateway.
+    2. Insider misuse of privileged desktop access.
+    3. Unpatched client software leading to code execution.
+
+    ## Example controls
+    - Multi-factor authentication on remote access.
+    - Session recording for privileged VDI use.
+    - Prompt patching of published applications.
+
+threat_scenario:
+  title: "Sample Cyber Threat Scenario Report"
+  content: |
+    # CYBER THREAT SCENARIO REPORT
+    # Zero-Day Exploit [New]
+
+    This is a fictional sample for format only.
+
+    ## A. Executive Summary
+    An external actor exploits an internet-facing service at ACME Bank, then moves
+    laterally using valid accounts.
+
+    ## B. Threat Actor Profile
+    Financially motivated criminal group using public exploits and phishing.
+
+    ## C. Attack Vectors
+    - Exploit Public-Facing Application (T1190)
+    - Valid Accounts (T1078)
+
+    ## D. Kill Chain Analysis
+    | Stage | Technique |
+    |-------|-----------|
+    | Initial Access | T1190 |
+    | Persistence | T1053 |
+    | Exfiltration | T1041 |
+
+    ## E. Kill Chain Description
+    The actor scans the edge, exploits a published service, installs a scheduled
+    task, and exfiltrates a small data set over an encrypted channel.
+
+    ## F. Control Failures (SUSPECTED)
+    1. SL-05 - Runtime authentication
+    2. SL-12 - Traffic monitoring
+
+cti_report:
+  title: "ACME Bank Sample CTI Feed"
+  content: |
+    # Sample Cyber Threat Intelligence Feed
+
+    Fictional quarterly notes for format guidance only.
+
+    ## Executive Summary
+    Phishing and public-facing application exploits remain the most common
+    initial-access paths against demo financial-sector peers.
+
+    ## Top themes
+    1. Credential phishing against webmail.
+    2. Exploitation of unpatched edge appliances.
+    3. Ransomware affiliates buying initial access.
+
+    ## Sources
+    Public reporting and the accompanying CVE/STRIDE samples in this repository.

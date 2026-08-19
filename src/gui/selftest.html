@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>STRIDE-Lite selftest</title>
+  <style>
+    body { background: #04060c; color: #d7e3f4; font: 13px ui-monospace, monospace; padding: 20px; }
+    .ok { color: #34d399; }
+    .fail { color: #f87171; }
+    pre { white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>STRIDE-Lite selftest</h1>
+  <pre id="log">running…</pre>
+  <pre id="results"></pre>
+  <script>
+    const results = [];
+    const log = (line) => {
+      const el = document.getElementById("log");
+      el.textContent += "\n" + line;
+    };
+    async function check(name, fn) {
+      try {
+        await fn();
+        results.push({ name, ok: true });
+        log("PASS " + name);
+      } catch (error) {
+        results.push({ name, ok: false, error: String(error.message || error) });
+        log("FAIL " + name + " " + error);
+      }
+    }
+    async function json(url) {
+      const response = await fetch(url);
+      const payload = await response.json();
+      if (!response.ok) throw new Error(url + " " + response.status + " " + (payload.error || ""));
+      return payload;
+    }
+    (async () => {
+      document.getElementById("log").textContent = "";
+      await check("status", async () => {
+        const data = await json("/api/status");
+        if (!data.cmdb.length) throw new Error("no applications");
+        if (!data.attack_templates.length) throw new Error("no templates");
+      });
+      await check("static assets", async () => {
+        for (const path of ["/", "/styles.css", "/app.js", "/vault.js", "/graph.js", "/score.js", "/vendor/vis-network.min.js", "/favicon.svg"]) {
+          const response = await fetch(path);
+          if (!response.ok) throw new Error(path + " " + response.status);
+        }
+      });
+      await check("vault index", async () => {
+        const vault = await json("/api/vault");
+        if (vault.counts.killchains !== 33) throw new Error("expected 33 killchains");
+        if (vault.counts.models < 1) throw new Error("no models");
+        if (vault.counts.scenarios < 1) throw new Error("no scenarios");
+        const rels = new Set(vault.edges.map((edge) => edge.rel));
+        for (const rel of ["about", "uses-template", "derived-from", "has-threat"]) {
+          if (!rels.has(rel)) throw new Error("missing rel " + rel);
+        }
+      });
+      await check("killchains + compare", async () => {
+        const catalog = await json("/api/killchains");
+        if (catalog.templates.length !== 33) throw new Error("template count");
+        const cmp = await json("/api/killchains/compare?a=Zero-Day%20Exploit%20%5BNew%5D&b=LockBit%20Ransomware%20Attack");
+        if (typeof cmp.jaccard !== "number") throw new Error("no jaccard");
+        const score = await json("/api/killchains/score?id=Zero-Day%20Exploit%20%5BNew%5D");
+        if (!score.spine || score.spine.length < 1) throw new Error("no score spine");
+        if (score.spine.length > 7) throw new Error("spine too long");
+        if (!score.views || !score.views.sequence.available) throw new Error("no sequence view");
+        const scored = await json("/api/killchains/score-compare?a=Zero-Day%20Exploit%20%5BNew%5D&b=LockBit%20Ransomware%20Attack");
+        if (!scored.shared || typeof scored.jaccard !== "number") throw new Error("no score compare");
+      });
+      await check("notes", async () => {
+        const ids = [
+          "killchain:zero-day-exploit-new",
+          "app:APP-778899",
+          "app:CMDB778899",
+          "tech:T1190",
+          "control:SL-05",
+          "cve:CVE-2821-28550",
+        ];
+        for (const id of ids) {
+          const note = await json("/api/vault/note?id=" + encodeURIComponent(id));
+          if (!note.type) throw new Error("no type for " + id);
+        }
+        const vault = await json("/api/vault");
+        const model = (vault.nodes || []).find((node) => node.type === "model");
+        if (model) {
+          const note = await json("/api/vault/note?id=" + encodeURIComponent(model.id));
+          if (!note.type) throw new Error("no type for " + model.id);
+        }
+      });
+      await check("traversal blocked", async () => {
+        const response = await fetch("/api/vault/note?id=" + encodeURIComponent("model:../etc/passwd"));
+        if (response.status !== 404) throw new Error("expected 404 got " + response.status);
+      });
+      await check("index has vault chrome", async () => {
+        const html = await (await fetch("/")).text();
+        for (const token of ["vault-graph", "vault-tree", "compare-go", "dread-slider", "stride-chips", "vault-quality-btn"]) {
+          if (!html.includes(token)) throw new Error("missing " + token);
+        }
+      });
+      const failed = results.filter((item) => !item.ok);
+      const summary = { passed: results.filter((item) => item.ok).length, failed: failed.length, results };
+      document.getElementById("results").textContent = JSON.stringify(summary, null, 2);
+      document.title = failed.length ? "SELFTEST FAIL" : "SELFTEST PASS";
+      document.body.dataset.status = failed.length ? "fail" : "pass";
+    })().catch((error) => {
+      document.getElementById("results").textContent = JSON.stringify({ passed: 0, failed: 1, error: String(error) }, null, 2);
+      document.title = "SELFTEST FAIL";
+    });
+  </script>
+</body>
+</html>

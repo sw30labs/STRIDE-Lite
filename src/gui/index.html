@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STRIDE-LITE // v2.0</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="alternate icon" href="/favicon.svg" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div id="boot">
+    <div class="boot-logo">STRIDE-LITE</div>
+    <div class="boot-bar"><i id="boot-fill"></i></div>
+    <div class="boot-log" id="boot-log">initializing workspace…</div>
+  </div>
+
+  <canvas id="bg-canvas"></canvas>
+  <div id="spotlight"></div>
+  <div id="grain"></div>
+
+  <header class="top">
+    <svg class="logo-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+      <path d="M20 4 L33 11.5 V26.5 L20 34 L7 26.5 V11.5 Z" stroke="#22d3ee" stroke-width="1.5"/>
+      <path d="M20 8 L29.5 13.5 V24.5 L20 30 L10.5 24.5 V13.5 Z" stroke="#5eead4" stroke-width="0.8" opacity="0.55"/>
+      <circle cx="20" cy="11" r="1.3" fill="#22d3ee"/>
+      <circle cx="28" cy="16" r="1.3" fill="#5eead4"/>
+      <circle cx="28" cy="25" r="1.3" fill="#22d3ee"/>
+      <circle cx="20" cy="29" r="1.3" fill="#fbbf24"/>
+      <circle cx="12" cy="25" r="1.3" fill="#22d3ee"/>
+      <circle cx="12" cy="16" r="1.3" fill="#5eead4"/>
+      <circle cx="20" cy="20" r="2.1" fill="#5eead4"/>
+    </svg>
+    <div class="brand">
+      <b>STRIDE-LITE</b>
+      <span>Threat models · scenarios · v2.0</span>
+    </div>
+    <div class="top-spacer"></div>
+    <div class="badge" id="default-provider">PROVIDER</div>
+    <button class="btn ghost" id="refresh" type="button">REFRESH</button>
+    <div class="clock"><span class="live-dot"></span><span id="clock">--:--:-- UTC</span></div>
+  </header>
+
+  <div class="layout">
+    <nav class="side" aria-label="Command deck">
+      <div class="nav-label">Command Deck</div>
+      <button class="nav-btn active" data-view="overview" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+        Overview
+      </button>
+      <button class="nav-btn" data-view="model" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 L20 7.5 V16.5 L12 21 L4 16.5 V7.5 Z"/><path d="M12 8 v8 M8 10.5 L12 12.5 L16 10.5"/></svg>
+        Threat Model
+      </button>
+      <button class="nav-btn" data-view="scenario" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2 L21 7 v10 l-9 5 -9 -5 V7 Z"/><path d="M12 11 L21 7 M12 11 v11 M12 11 L3 7"/></svg>
+        Scenario
+      </button>
+      <button class="nav-btn" data-view="reports" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3 h8 l5 5 v13 H7 Z"/><path d="M15 3 v5 h5"/><path d="M9 13 h6 M9 17 h6"/></svg>
+        Reports <span class="count" id="nav-report-count"></span>
+      </button>
+      <button class="nav-btn" data-view="activity" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19 V11 M10 19 V5 M16 19 V9 M22 19 V7"/></svg>
+        Activity <span class="count" id="job-count"></span>
+      </button>
+      <button class="nav-btn" data-view="vault" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="8" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="12" cy="17" r="2"/><path d="M8 8 h8 M7.2 9.6 L10.8 15.4 M16.8 9.6 L13.2 15.4"/></svg>
+        Vault
+      </button>
+      <button class="nav-btn" data-view="atlas" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3 a14 14 0 0 1 0 18 M12 3 a14 14 0 0 0 0 18 M3 12 h18"/></svg>
+        Atlas
+      </button>
+      <button class="nav-btn" data-view="about" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11 v5 M12 7.5 v.01"/></svg>
+        About
+      </button>
+      <div class="side-foot">
+        STRIDE-LITE v2.0<br>
+        STRIDE → DREAD → SCENARIO<br>
+        OMLX · OPENAI<br>
+        APACHE 2.0
+      </div>
+    </nav>
+
+    <main>
+      <section class="view active" id="view-overview">
+        <div class="view-head">
+          <h1>SITUATION <em>ROOM</em></h1>
+          <p id="workspace">Workspace loading</p>
+        </div>
+        <div class="grid g-6">
+          <div class="panel kpi accent">
+            <div class="k-label">Applications</div>
+            <div class="k-value" id="metric-cmdb">0</div>
+            <div class="k-sub">Inventory rows</div>
+          </div>
+          <div class="panel kpi">
+            <div class="k-label">Templates</div>
+            <div class="k-value" id="metric-templates">0</div>
+            <div class="k-sub">ATT&amp;CK kill chains</div>
+          </div>
+          <div class="panel kpi">
+            <div class="k-label">Threat models</div>
+            <div class="k-value" id="metric-stride">0</div>
+            <div class="k-sub">STRIDE + DREAD JSON</div>
+          </div>
+          <div class="panel kpi">
+            <div class="k-label">Scenarios</div>
+            <div class="k-value" id="metric-scenarios">0</div>
+            <div class="k-sub">CVE · CTI · kill chain</div>
+          </div>
+        </div>
+        <div class="grid g-2 mt">
+          <div class="panel">
+            <div class="panel-title">Workflow 01 · Threat model</div>
+            <p class="lede">Generate a STRIDE catalog and DREAD scores for one application. Local oMLX or hosted OpenAI.</p>
+            <button class="btn primary" type="button" data-go="model">OPEN THREAT MODEL</button>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Workflow 02 · Scenario</div>
+            <p class="lede">Layer a CVE brief, CTI feed, and kill-chain narrative on an existing threat-model JSON.</p>
+            <button class="btn primary" type="button" data-go="scenario">OPEN SCENARIO</button>
+          </div>
+        </div>
+        <div class="panel mt">
+          <div class="panel-title">Workflow 03 · Vault</div>
+          <p class="lede">Graph the saved model, the generated scenario, and the ATT&amp;CK template they share.</p>
+          <button class="btn primary" type="button" data-go="vault">OPEN VAULT</button>
+        </div>
+        <div class="panel mt tease">
+          <div class="panel-title">Next · Contingency Atlas</div>
+          <p class="lede">STRIDE-Lite is the public companion. Contingency Atlas is a separate operational-risk foresight system. It is <strong>not in this repository</strong> and is <strong>not a public release</strong>.</p>
+          <p class="lede dim">This tool does not include Atlas data, phases, or radar. Visual kinship only.</p>
+          <button class="btn ghost" type="button" data-go="atlas">READ THE LINE</button>
+        </div>
+      </section>
+
+      <section class="view" id="view-model">
+        <div class="view-head">
+          <h1>THREAT <em>MODEL</em></h1>
+          <p>STRIDE categories, then DREAD. QA loops up to three times per stage.</p>
+        </div>
+        <div class="panel">
+          <div class="panel-header-row">
+            <div class="panel-title flush">Generate STRIDE + DREAD</div>
+            <span id="model-provider-state" class="state-indicator">Idle</span>
+          </div>
+          <form id="model-form" class="set-form form-row">
+            <label>
+              Application ID
+              <select id="cmdb-id" name="cmdb_id"></select>
+            </label>
+            <label>
+              Provider
+              <select id="model-provider" name="provider"></select>
+            </label>
+            <button class="btn primary" type="submit">RUN MODEL</button>
+          </form>
+        </div>
+        <div class="panel mt" id="cmdb-detail">
+          <div class="empty">No application selected</div>
+        </div>
+      </section>
+
+      <section class="view" id="view-scenario">
+        <div class="view-head">
+          <h1>THREAT <em>SCENARIO</em></h1>
+          <p>CVE brief → CTI feed → kill-chain report, bound to a saved threat model.</p>
+        </div>
+        <div class="panel">
+          <div class="panel-header-row">
+            <div class="panel-title flush">Generate CVE, CTI, scenario</div>
+            <span id="scenario-provider-state" class="state-indicator">Idle</span>
+          </div>
+          <form id="scenario-form" class="set-form form-grid-4">
+            <label>
+              Threat model JSON
+              <select id="json-file" name="json_file"></select>
+            </label>
+            <label>
+              Attack template
+              <select id="attack-template" name="attack_template"></select>
+            </label>
+            <label>
+              Provider
+              <select id="scenario-provider" name="provider"></select>
+            </label>
+            <label>
+              Minimum CVSS
+              <input id="min-cvss" name="min_cvss" type="number" min="0" max="10" step="0.1" value="8.5" />
+            </label>
+            <label>
+              CVE feed JSON
+              <input id="cve-feed" name="cve_feed" type="text" placeholder="data/sample_cves.json" />
+            </label>
+            <button class="btn primary form-span" type="submit">RUN SCENARIO</button>
+          </form>
+        </div>
+        <div class="panel mt">
+          <div class="panel-title">Kill-chain techniques</div>
+          <div class="technique-list" id="technique-list">
+            <div class="empty">No attack template selected</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-reports">
+        <div class="view-head">
+          <h1>ARTIFACT <em>LIBRARY</em></h1>
+          <p>JSON written under output/stride, output/scenarios, and output/feedback.</p>
+        </div>
+        <div class="panel">
+          <div class="panel-header-row">
+            <div class="panel-title flush">Generated files</div>
+            <div class="segmented" role="tablist" aria-label="Report type">
+              <button class="segment active" data-report-type="stride" type="button">STRIDE</button>
+              <button class="segment" data-report-type="scenarios" type="button">Scenarios</button>
+              <button class="segment" data-report-type="feedback" type="button">Feedback</button>
+            </div>
+          </div>
+          <div class="reports-layout">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Modified</th>
+                    <th>Size</th>
+                  </tr>
+                </thead>
+                <tbody id="reports-table"></tbody>
+              </table>
+            </div>
+            <pre id="report-preview" class="report-preview">Select an artifact</pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-activity">
+        <div class="view-head">
+          <h1>JOB <em>ACTIVITY</em></h1>
+          <p>Background subprocesses. Last 500 log lines per job.</p>
+        </div>
+        <div class="grid g-23">
+          <div class="panel">
+            <div class="panel-title">Queue</div>
+            <div id="job-list" class="job-list"></div>
+          </div>
+          <div class="panel console-panel">
+            <div class="panel-header-row">
+              <div>
+                <div class="panel-title flush" id="console-title">No active job</div>
+              </div>
+              <span id="console-state" class="state-indicator">Idle</span>
+            </div>
+            <pre id="console-log" class="console-log">Awaiting execution</pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-vault">
+        <div class="view-head">
+          <h1>VAULT <em>GRAPH</em></h1>
+          <p>Linked notes: models, scenarios, kill chains, and the applications they attach to.</p>
+        </div>
+        <div class="vault-toolbar">
+          <div class="segmented" role="tablist" aria-label="Graph mode">
+            <button class="segment active" id="vault-mode-vault" type="button">VAULT</button>
+            <button class="segment" id="vault-mode-local" type="button">LOCAL</button>
+          </div>
+          <div class="vault-filters" id="vault-filters"></div>
+          <div class="stride-chips" id="stride-chips"></div>
+          <label class="slider-label">DREAD ≥ <span id="dread-value">0</span>
+            <input id="dread-slider" type="range" min="0" max="10" step="0.5" value="0" />
+          </label>
+          <label class="set-check chip-check"><input id="normalize-typos" type="checkbox" /> NORMALIZE TYPOS</label>
+          <button class="btn ghost" id="vault-quality-btn" type="button">QUALITY</button>
+          <button class="btn ghost" id="vault-switcher-btn" type="button">⌘P SWITCH</button>
+        </div>
+        <div class="vault-compare">
+          <select id="compare-a"></select>
+          <select id="compare-b"></select>
+          <button class="btn primary" id="compare-go" type="button">COMPARE</button>
+        </div>
+        <div class="vault-shell">
+          <div class="panel vault-tree-panel">
+            <div class="panel-title">Library</div>
+            <div id="vault-tree" class="vault-tree"></div>
+          </div>
+          <div class="panel vault-graph-panel">
+            <div id="vault-graph" class="vault-graph"></div>
+            <div id="vault-list" class="vault-list" hidden></div>
+          </div>
+          <div class="panel vault-note-panel">
+            <div class="panel-header-row">
+              <div class="panel-title flush" id="vault-note-title">Select a node</div>
+              <button class="btn ghost" id="vault-raw-btn" type="button">RAW</button>
+            </div>
+            <div id="vault-props" class="vault-props"></div>
+            <div id="vault-outline" class="vault-outline"></div>
+            <div id="vault-note" class="vault-note"><div class="empty">Click a model, scenario, or kill chain.</div></div>
+            <div id="vault-compare-out" class="vault-compare-out" hidden></div>
+            <div id="vault-quality" class="vault-quality" hidden></div>
+            <div class="vault-links">
+              <div>
+                <div class="panel-title">Outgoing</div>
+                <div id="vault-out" class="link-list"></div>
+              </div>
+              <div>
+                <div class="panel-title">Backlinks</div>
+                <div id="vault-back" class="link-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="about-foot" id="vault-disclaimer"></p>
+      </section>
+
+      <div id="switcher" class="switcher" hidden>
+        <input id="switcher-input" type="search" placeholder="Open note…" autocomplete="off" />
+        <div id="switcher-results" class="switcher-results"></div>
+      </div>
+
+      <section class="view" id="view-atlas">
+        <div class="view-head">
+          <h1>CONTINGENCY <em>ATLAS</em></h1>
+          <p>A separate system. Not this repo. Not a public release.</p>
+        </div>
+        <div class="panel about-hero">
+          <div>
+            <div class="about-name">CONTINGENCY ATLAS</div>
+            <div class="about-sub">Operational-risk foresight</div>
+            <div class="about-tag">Evidence-grounded scenarios. Not a prediction engine.</div>
+          </div>
+          <span class="badge warn">NOT PUBLIC</span>
+        </div>
+        <div class="panel mt">
+          <div class="panel-title">The line between the two</div>
+          <div class="about-paras">
+            <p>STRIDE-Lite-v2.0 is the public Apache 2.0 tool: STRIDE, DREAD, and kill-chain scenarios you can run locally.</p>
+            <p>Contingency Atlas is a different product — a fuller foresight stack (ingest, signals, judged scenarios, radar). It does not ship in this repository and cannot be treated as open-source from this project.</p>
+            <p>No Atlas data, methods, or internals are included here. The shared look is deliberate kinship, not a bundle.</p>
+          </div>
+        </div>
+        <div class="about-foot">Independent personal research. Not affiliated with, sponsored, or endorsed by any employer.</div>
+      </section>
+
+      <section class="view" id="view-about">
+        <div class="view-head">
+          <h1>ABOUT <em>STRIDE-LITE</em></h1>
+          <p>Public companion for structured threat modeling.</p>
+        </div>
+        <div class="panel about-hero">
+          <div>
+            <div class="about-name">STRIDE-LITE</div>
+            <div class="about-sub">v2.0 · Apache License 2.0</div>
+            <div class="about-tag">Threat models first. Scenarios second. Foresight later, elsewhere.</div>
+          </div>
+          <span class="badge">v2.0</span>
+        </div>
+        <div class="panel mt">
+          <div class="panel-title">System</div>
+          <div class="fact-grid">
+            <div class="m-field"><div class="f-label">Orchestration</div><div class="f-value">LangGraph STRIDE → DREAD → scenario</div></div>
+            <div class="m-field"><div class="f-label">Inference</div><div class="f-value">OpenAI-compatible; local oMLX supported</div></div>
+            <div class="m-field"><div class="f-label">Inputs</div><div class="f-value">data/applications.json · attack templates · control taxonomy</div></div>
+            <div class="m-field"><div class="f-label">Outputs</div><div class="f-value">JSON under output/stride and output/scenarios</div></div>
+          </div>
+        </div>
+        <div class="panel mt">
+          <div class="panel-title">Boundaries</div>
+          <ul class="about-bullets">
+            <li>Outputs are hypothetical research artifacts, not advice.</li>
+            <li>Demo CVE feed is a stand-in, not a live vulnerability database.</li>
+            <li>Scenario QA nodes currently auto-approve; treat reports as drafts.</li>
+            <li>MITRE ATT&amp;CK® technique IDs in templates are public knowledge used for structure.</li>
+          </ul>
+        </div>
+        <div class="about-foot">STRIDE-LITE v2.0 · LOCAL CONSOLE · APACHE 2.0</div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/vendor/vis-network.min.js"></script>
+  <script src="/graph.js"></script>
+  <script src="/score.js"></script>
+  <script src="/vault.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
