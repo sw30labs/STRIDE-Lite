@@ -2,6 +2,11 @@
 
 Personal research project. Not a product commitment. Dates are not promises.
 
+## v2.1 — shipped in this tree
+
+- Buy-side agent-runtime attack templates (MNPI exfil, MCP abuse, shadow agents, poisoned-copilot integrity) and `APP-303030` research gateway.
+- Vault catalog map: polar six-slice spider (radius = data/cloud share) plus ternary Human / Infra / Data. LOCAL remains the one-hop graph.
+
 ## v2.0 — shipped in this tree
 
 - STRIDE → DREAD LangGraph workflow with parseable JSON (field aliases, all six categories).

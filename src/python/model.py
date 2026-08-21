@@ -4,7 +4,7 @@
 Script: Threat Model and Workflow Generator
 Author: Nic Cravino
 Date: 12 May 2025
-UPDate: August 19, 2026 - v2.0 public tree, metrics off 8000
+UPDate: August 21, 2026 - v2.1 public tree, metrics off 8000
 License: Apache License 2.0
 Description: STRIDE then DREAD for one APP-* id; LangGraph loops generate→QA until pass or 3 iterations.
 """

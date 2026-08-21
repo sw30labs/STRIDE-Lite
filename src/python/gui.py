@@ -497,13 +497,13 @@ def _content_type(path: Path) -> str:
 
 # Function to parse command-line arguments (better than doing it inline, scalable)
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Serve the STRIDE-Lite v2.0 local GUI")
+    parser = argparse.ArgumentParser(description="Serve the STRIDE-Lite v2.1 local GUI")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
     args = parser.parse_args()
 
     server = ThreadingHTTPServer((args.host, args.port), GuiHandler)
-    print(f"STRIDE-Lite v2.0: http://{args.host}:{args.port}")
+    print(f"STRIDE-Lite v2.1: http://{args.host}:{args.port}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

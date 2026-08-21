@@ -2,7 +2,7 @@
 """
 STRIDE-Lite Backend Unittests
 
-Unittest suite for the v2.0 backend: STRIDE JSON parsing, the kill-chain
+Unittest suite for the v2.1 backend: STRIDE JSON parsing, the kill-chain
 catalog, campaign scores (spine / lanes / HTML export), the vault graph,
 and the public application schema. I run this from the repo root so
 data/ and tests/fixtures resolve the same way the scripts do.

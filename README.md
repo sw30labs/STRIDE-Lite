@@ -1,4 +1,4 @@
-# STRIDE-Lite v2.0
+# STRIDE-Lite v2.1
 
 Local STRIDE / DREAD threat models, ATT&CK-templated scenarios, and a linked-note Vault.
 
