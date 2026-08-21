@@ -94,7 +94,7 @@ def slugify(name: str) -> str:
 def family_tags(name: str) -> list[str]:
     lower = name.lower()
     tags: list[str] = []
-    if any(token in lower for token in ("[ai saas", "shadow ai", "agentic ai", "prompt injection", "rag ", "vector store", "ai model")):
+    if any(token in lower for token in ("[ai saas", "[buy-side", "shadow ai", "shadow agent", "agentic", "prompt injection", "rag ", "vector store", "ai model", "mcp")):
         tags.append("ai-saas")
     if any(token in lower for token in ("ransomware", "lockbit", "ransomhub", "akira", "data extortion")):
         tags.append("ransomware")

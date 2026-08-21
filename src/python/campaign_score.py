@@ -52,6 +52,7 @@ LANES: tuple[tuple[str, str], ...] = (
 # Subtechniques inherit the parent unless listed. Not a full ATT&CK dump.
 _TID_TACTIC: dict[str, str] = {
     "T1003": "credential access",
+    "T1005": "collection",
     "T1014": "defense evasion",
     "T1016": "discovery",
     "T1018": "discovery",
@@ -116,6 +117,7 @@ _TID_TACTIC: dict[str, str] = {
     "T1530": "collection",
     "T1531": "impact",
     "T1534": "lateral movement",
+    "T1537": "exfiltration",
     "T1539": "credential access",
     "T1542": "persistence",
     "T1543": "persistence",

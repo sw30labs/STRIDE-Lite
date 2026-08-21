@@ -111,16 +111,20 @@ class ParseThreatTests(unittest.TestCase):
 
 # Kill-chain catalog, slugs, note lines vs steps, template compare
 class KillchainTests(unittest.TestCase):
-    # 33 is the shipped template count; bump this if predefined_attack_templates.json grows
+    # 37 is the shipped template count; bump this if predefined_attack_templates.json grows
     def test_catalog_size(self):
         catalog = build_catalog()
-        self.assertEqual(len(catalog["templates"]), 33)
+        self.assertEqual(len(catalog["templates"]), 37)
         self.assertGreaterEqual(len(catalog["techniques"]), 50)
         self.assertGreater(len(catalog["ambiguities"]), 0)
 
     def test_slug_and_family(self):
         self.assertEqual(slugify("Zero-Day Exploit [New]"), "zero-day-exploit-new")
         self.assertIn("ai-saas", family_tags("Indirect Prompt Injection via Vendor AI Ingestion [AI SaaS 2026]"))
+        self.assertIn("ai-saas", family_tags("Overprivileged Researcher MCP and Agentic Tool-Chain Abuse [Buy-Side 2026]"))
+        self.assertIn("ai-saas", family_tags("Shadow Agentic Research and Coding Agents Outside SDLC [Buy-Side 2026]"))
+        self.assertIn("ai-saas", family_tags("MNPI Exfil via Research RAG and Agent Tools [Buy-Side 2026]"))
+        self.assertIn("ai-saas", family_tags("Integrity Incident via Poisoned RAG Copilot Output [Buy-Side 2026]"))
         self.assertIn("ransomware", family_tags("LockBit Ransomware Attack"))
         self.assertIn("api", family_tags("[API] Public APIs (External Exposure) API Abuse DDoS Attack"))
         self.assertIn("apt", family_tags("Salt Typhoon Telecom Edge Espionage [New 2025]"))
@@ -155,7 +159,7 @@ class CampaignScoreTests(unittest.TestCase):
     # compile_all: one score per shipped template, six lanes, climax glyph
     def test_all_templates_compile(self):
         scores = compile_all()
-        self.assertEqual(len(scores), 33)
+        self.assertEqual(len(scores), 37)
         for score in scores:
             self.assertLessEqual(len(score["spine"]), 7)
             self.assertGreaterEqual(len(score["spine"]), 1)
@@ -293,10 +297,10 @@ class VaultTests(unittest.TestCase):
 
 # Public application schema, CMDB* → APP-* mapping, CVE feed override
 class InventoryTests(unittest.TestCase):
-    # Inventory is APPLICATION_FIELDS (8 rows in data/applications.json)
+    # Inventory is APPLICATION_FIELDS (9 rows in data/applications.json)
     def test_applications_use_public_schema(self):
         apps = load_applications()
-        self.assertEqual(len(apps), 8)
+        self.assertEqual(len(apps), 9)
         allowed = set(APPLICATION_FIELDS)
         raw = json.loads((ROOT / "data" / "applications.json").read_text())
         for row in raw:

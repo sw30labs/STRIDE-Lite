@@ -112,7 +112,7 @@ class GuiHttpTests(unittest.TestCase):
     def test_vault_and_compare(self):
         _, _, raw = _get("/api/vault")
         vault = json.loads(raw)
-        self.assertEqual(vault["counts"]["killchains"], 33)
+        self.assertEqual(vault["counts"]["killchains"], 37)
         _, _, raw = _get("/api/killchains/compare?a=Zero-Day%20Exploit%20%5BNew%5D&b=LockBit%20Ransomware%20Attack")
         cmp = json.loads(raw)
         self.assertIn("jaccard", cmp)

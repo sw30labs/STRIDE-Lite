@@ -51,7 +51,7 @@
       });
       await check("vault index", async () => {
         const vault = await json("/api/vault");
-        if (vault.counts.killchains !== 33) throw new Error("expected 33 killchains");
+        if (vault.counts.killchains !== 37) throw new Error("expected 37 killchains");
         if (vault.counts.models < 1) throw new Error("no models");
         if (vault.counts.scenarios < 1) throw new Error("no scenarios");
         const rels = new Set(vault.edges.map((edge) => edge.rel));
@@ -61,7 +61,7 @@
       });
       await check("killchains + compare", async () => {
         const catalog = await json("/api/killchains");
-        if (catalog.templates.length !== 33) throw new Error("template count");
+        if (catalog.templates.length !== 37) throw new Error("template count");
         const cmp = await json("/api/killchains/compare?a=Zero-Day%20Exploit%20%5BNew%5D&b=LockBit%20Ransomware%20Attack");
         if (typeof cmp.jaccard !== "number") throw new Error("no jaccard");
         const score = await json("/api/killchains/score?id=Zero-Day%20Exploit%20%5BNew%5D");

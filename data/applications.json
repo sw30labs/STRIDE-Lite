@@ -110,5 +110,19 @@
     "internet_facing": false,
     "sourcing": "SAAS",
     "customer_data": true
+  },
+  {
+    "id": "APP-303030",
+    "name": "ACME RESEARCH AGENT GATEWAY",
+    "description": "In-house research RAG and multi-step coding agents for investment pods. Retrieves internal research notes, PM memos, and position context. MCP servers connect to market-data vendors, an OMS read connector, SharePoint, and Git. Untrusted Street research and earnings documents are ingested. Tool grants are per-pod and historically broader than policy. Shadow copies on laptops sit outside this control plane.",
+    "architecture": "In-house Linux agent runtime with MCP tool servers, a vector store over the research corpus, and mixed frontier/local model backends. Connectors to market-data APIs, OMS, SharePoint, and source control.",
+    "business_area": "Research",
+    "confidentiality": "Level 1",
+    "integrity": "Level 1",
+    "availability": "Level 2",
+    "platform": ["Linux", "Cloud"],
+    "internet_facing": false,
+    "sourcing": "Hybrid",
+    "customer_data": false
   }
 ]
