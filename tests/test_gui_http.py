@@ -37,6 +37,7 @@ import unittest
 import urllib.error
 import urllib.request
 from pathlib import Path
+from urllib.parse import urlparse
 
 # Constants for repo root and GUI base URL (override with STRIDE_GUI_URL)
 ROOT = Path(__file__).resolve().parents[1]
@@ -60,20 +61,23 @@ def _get(path: str):
 class GuiHttpTests(unittest.TestCase):
     server: subprocess.Popen | None = None
 
-    # Reuse a live GUI if 8765 is bound; fail early after ~4s of polls
+    # Reuse a live GUI on GUI_URL; fail early after ~4s of polls
     # TODO(nic): stderr is DEVNULL so spawn failures currently look like a timeout
     @classmethod
     def setUpClass(cls):
-        if _port_open("127.0.0.1", 8765):
+        parsed = urlparse(GUI_URL)
+        host = parsed.hostname or "127.0.0.1"
+        port = parsed.port or 8765
+        if _port_open(host, port):
             return
         cls.server = subprocess.Popen(
-            [sys.executable, "src/python/gui.py", "--host", "127.0.0.1", "--port", "8765"],
+            [sys.executable, "src/python/gui.py", "--host", host, "--port", str(port)],
             cwd=ROOT,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
         for _ in range(40):
-            if _port_open("127.0.0.1", 8765):
+            if _port_open(host, port):
                 return
             time.sleep(0.1)
         raise RuntimeError("GUI did not start")
@@ -113,9 +117,24 @@ class GuiHttpTests(unittest.TestCase):
         _, _, raw = _get("/api/vault")
         vault = json.loads(raw)
         self.assertEqual(vault["counts"]["killchains"], 37)
+        kill = next(node for node in vault["nodes"] if node["type"] == "killchain")
+        self.assertIn(kill["props"]["slice"], {"identity", "exploit", "espionage", "cloud-api", "agent-ai", "ransomware"})
+        _, _, raw = _get("/api/killchains")
+        catalog = json.loads(raw)
+        self.assertEqual(len(catalog["catalog_map"]["points"]), 37)
+        self.assertEqual(len(catalog["catalog_map"]["slices"]), 6)
+        _, _, raw = _get("/api/killchains/catalog-map")
+        cmap = json.loads(raw)
+        self.assertEqual(len(cmap["points"]), 37)
         _, _, raw = _get("/api/killchains/compare?a=Zero-Day%20Exploit%20%5BNew%5D&b=LockBit%20Ransomware%20Attack")
         cmp = json.loads(raw)
         self.assertIn("jaccard", cmp)
+
+    def test_spider_asset(self):
+        status, ctype, salida = _get("/spider.js")
+        self.assertEqual(status, 200)
+        self.assertIn("javascript", ctype)
+        self.assertIn(b"CatalogMap", salida)
 
     def test_selftest_page(self):
         status, _, salida = _get("/selftest.html")

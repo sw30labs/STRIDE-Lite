@@ -26,7 +26,7 @@ import puppeteer from "puppeteer-core";
 // Constants for Chrome binary and the local GUI (8765 — same as gui.py)
 // TODO(nic): CHROME is the Mac Applications path; no env override if you install elsewhere
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-const BASE = "http://127.0.0.1:8765";
+const BASE = process.env.STRIDE_GUI_URL || "http://127.0.0.1:8765";
 const failures = [];
 const steps = [];
 
@@ -116,6 +116,42 @@ try {
     });
     if (info.error) throw new Error(info.error);
     await page.waitForFunction(() => document.getElementById("vault-note-title").textContent !== "Select a node", { timeout: 8000 });
+  });
+
+  await step("catalog polar map", async () => {
+    await page.evaluate(() => window.go("vault"));
+    await page.waitForFunction(() => document.querySelectorAll("#vault-spider .spider-dot").length >= 20, { timeout: 10000 });
+    const polar = await page.$eval("#vault-spider svg", (el) => el.getAttribute("data-layout"));
+    if (polar !== "polar") throw new Error("expected polar layout " + polar);
+    const clicked = await page.evaluate(() => {
+      const dots = [...document.querySelectorAll("#vault-spider .spider-dot")];
+      const mnpi = dots.find((el) => (el.getAttribute("data-id") || "").includes("mnpi-exfil"));
+      if (!mnpi) return false;
+      mnpi.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      return true;
+    });
+    if (!clicked) throw new Error("MNPI dot missing");
+    await page.waitForFunction(() => /MNPI Exfil/.test(document.getElementById("vault-note-title")?.textContent || ""), { timeout: 8000 });
+  });
+
+  await step("catalog ternary map", async () => {
+    await page.evaluate(() => document.getElementById("vault-layout-ternary")?.click());
+    await page.waitForFunction(() => document.querySelector("#vault-spider .spider-triangle"), { timeout: 8000 });
+    const layout = await page.$eval("#vault-spider svg", (el) => el.getAttribute("data-layout"));
+    if (layout !== "ternary") throw new Error("expected ternary layout " + layout);
+    await page.evaluate(() => document.getElementById("vault-layout-polar")?.click());
+    await page.waitForFunction(() => document.querySelector("#vault-spider svg")?.getAttribute("data-layout") === "polar");
+  });
+
+  await step("local mode still network", async () => {
+    await page.evaluate(() => document.getElementById("vault-mode-local")?.click());
+    const hidden = await page.$eval("#vault-spider", (el) => el.hidden);
+    if (!hidden) throw new Error("spider still visible in local");
+    const netHidden = await page.$eval("#vault-network", (el) => el.hidden);
+    if (netHidden) throw new Error("network hidden in local");
+    await page.evaluate(() => document.getElementById("vault-mode-vault")?.click());
+    const spiderHidden = await page.$eval("#vault-spider", (el) => el.hidden);
+    if (spiderHidden) throw new Error("spider hidden in vault");
   });
 
   // Score SVG is the proof the killchain note actually mounted

@@ -44,7 +44,7 @@
         if (!data.attack_templates.length) throw new Error("no templates");
       });
       await check("static assets", async () => {
-        for (const path of ["/", "/styles.css", "/app.js", "/vault.js", "/graph.js", "/score.js", "/vendor/vis-network.min.js", "/favicon.svg"]) {
+        for (const path of ["/", "/styles.css", "/app.js", "/vault.js", "/graph.js", "/spider.js", "/score.js", "/vendor/vis-network.min.js", "/favicon.svg"]) {
           const response = await fetch(path);
           if (!response.ok) throw new Error(path + " " + response.status);
         }
@@ -62,6 +62,10 @@
       await check("killchains + compare", async () => {
         const catalog = await json("/api/killchains");
         if (catalog.templates.length !== 37) throw new Error("template count");
+        if (!catalog.catalog_map || catalog.catalog_map.slices.length !== 6) throw new Error("catalog map slices");
+        if (catalog.catalog_map.points.length !== 37) throw new Error("catalog map points");
+        const cmap = await json("/api/killchains/catalog-map");
+        if (cmap.points.length !== 37) throw new Error("catalog-map endpoint");
         const cmp = await json("/api/killchains/compare?a=Zero-Day%20Exploit%20%5BNew%5D&b=LockBit%20Ransomware%20Attack");
         if (typeof cmp.jaccard !== "number") throw new Error("no jaccard");
         const score = await json("/api/killchains/score?id=Zero-Day%20Exploit%20%5BNew%5D");
@@ -97,7 +101,7 @@
       });
       await check("index has vault chrome", async () => {
         const html = await (await fetch("/")).text();
-        for (const token of ["vault-graph", "vault-tree", "compare-go", "dread-slider", "stride-chips", "vault-quality-btn"]) {
+        for (const token of ["vault-graph", "vault-spider", "vault-layout-polar", "vault-layout-ternary", "vault-tree", "compare-go", "dread-slider", "stride-chips", "vault-quality-btn"]) {
           if (!html.includes(token)) throw new Error("missing " + token);
         }
       });

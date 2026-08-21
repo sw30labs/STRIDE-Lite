@@ -14,7 +14,7 @@ Contingency Atlas is a **separate** operational-risk foresight system. It is **n
 
 1. **Threat model** — LangGraph workflow: STRIDE catalog, DREAD scores, iterative QA, JSON save.
 2. **Scenario** — CVE brief, CTI feed, and a kill-chain narrative on top of a saved model.
-3. **Vault** — graph of models, scenarios, kill-chain templates, and applications. Local 1-hop, compare, quality flags, ⌘P switcher. Kill chains open as a Campaign Score (phase × lane grid, sequence, storyboard).
+3. **Vault** — polar catalog map of kill chains (six slices, radius = data/cloud share; ternary Human/Infra/Data toggle). LOCAL is still a one-hop graph. Compare, quality flags, ⌘P switcher. Kill chains open as a Campaign Score (phase × lane grid, sequence, storyboard).
 
 ![Vault](assets/gui-vault.png)
 

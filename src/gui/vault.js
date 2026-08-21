@@ -6,8 +6,8 @@ switcher. I wrote this so the graph (graph.js) and the note panel stay
 in one IIFE — fetch /api/vault, paint, and deep-link #vault/type/id.
 
 Notes:
-- Two modes: vault (models / scenarios / kill chains / apps) and local
-  (expand the selected killchain or model by one hop).
+- Two modes: vault (polar/ternary catalog map of kill chains) and local
+  (expand the selected killchain or model by one hop on vis-network).
 - Markdown is a subset I render here (headings, tables, fences) so the
   pane does not pull a library; wikilinks become buttons that select() nodes.
 - Compare hits /api/killchains/compare and mounts Score side-by-side.
@@ -27,10 +27,13 @@ const Vault = (() => {
   let index = { nodes: [], edges: [] };
   let catalog = { templates: [], techniques: [], ambiguities: [] };
   let graph = null;
+  let spider = null;
   let mode = "vault";
+  let layout = "polar";
   let selectedId = null;
   let rawMode = false;
   let familyFilter = new Set();
+  let sliceFilter = new Set();
   let strideFilter = new Set();
   let dreadMin = 0;
   let normalizeTypos = false;
@@ -77,6 +80,9 @@ const Vault = (() => {
       if (mode === "vault" && (node.type === "technique" || node.type === "threat" || node.hiddenInVault)) return false;
       return true;
     });
+    if (sliceFilter.size) {
+      nodes = nodes.filter((node) => node.type !== "killchain" || sliceFilter.has(node.props?.slice));
+    }
     if (familyFilter.size) {
       const keep = new Set();
       for (const node of nodes) {
@@ -355,7 +361,7 @@ const Vault = (() => {
   function renderKillchain(note) {
     const notes = (note.notes || []).map((item) => `<div class="lede dim">${escapeHtml(item)}</div>`).join("");
     return `
-      <p class="lede dim">${escapeHtml(note.order_quality || "")} · ${(note.families || []).join(", ")}</p>
+      <p class="lede dim">${escapeHtml(note.order_quality || "")} · ${(note.families || []).join(", ")}${note.map?.slice_label ? ` · ${escapeHtml(note.map.slice_label)}` : ""}</p>
       <div id="score-root"></div>
       ${notes ? `<div class="score-notes">${notes}</div>` : ""}
       <button class="btn primary" type="button" id="vault-run-template">USE IN SCENARIO</button>
@@ -484,6 +490,7 @@ const Vault = (() => {
   function select(id, push) {
     selectedId = id;
     if (graph) graph.setSelection(id);
+    if (spider) spider.setSelection(id);
     renderTree();
     renderList();
     renderLinks();
@@ -594,13 +601,33 @@ const Vault = (() => {
     return { nodes, edges };
   }
 
-  // Function to push the filtered (and locally expanded) graph to GraphCanvas
+  // Function to show polar map or 1-hop network depending on mode
+  function syncGraphChrome() {
+    const spiderEl = $("vault-spider");
+    const networkEl = $("vault-network");
+    const layoutToggle = $("vault-layout-toggle");
+    const vaultMode = mode === "vault";
+    if (spiderEl) spiderEl.hidden = !vaultMode;
+    if (networkEl) networkEl.hidden = vaultMode;
+    if (layoutToggle) layoutToggle.hidden = !vaultMode;
+  }
+
+  // Function to push the filtered graph to CatalogMap (vault) or vis-network (local)
   function applyGraph() {
     const baseNodes = filteredNodes();
     const ids = new Set(baseNodes.map((node) => node.id));
     const baseEdges = index.edges.filter((edge) => ids.has(edge.from) && ids.has(edge.to));
     const { nodes, edges } = expandLocal(baseNodes, baseEdges);
+    const killIds = nodes.filter((node) => node.type === "killchain").map((node) => node.id);
+    if (spider) {
+      if (catalog.catalog_map) spider.setMap(catalog.catalog_map);
+      spider.setLayout(layout);
+      spider.setSliceFilter([...sliceFilter]);
+      spider.setVisible(killIds);
+      spider.setSelection(selectedId);
+    }
     if (graph) graph.setGraph({ nodes, edges });
+    syncGraphChrome();
     renderTree();
     renderList();
   }
@@ -683,10 +710,20 @@ const Vault = (() => {
     catalog = chains;
     lastIndexFp = fingerprint;
     $("vault-disclaimer").textContent = vault.disclaimer || chains.disclaimer || "";
-    if (!graph && $("vault-graph")) {
-      graph = GraphCanvas.mount($("vault-graph"));
+    if (!graph && $("vault-network")) {
+      graph = GraphCanvas.mount($("vault-network"));
       graph.onSelect((node) => {
         if (node) select(node.id, true);
+      });
+    }
+    if (!spider && $("vault-spider") && window.CatalogMap) {
+      spider = window.CatalogMap.mount($("vault-spider"));
+      spider.onSelect((node) => {
+        if (node && node.id) select(node.id, true);
+      });
+      spider.onSlice((ids) => {
+        sliceFilter = new Set(ids || []);
+        applyGraph();
       });
     }
     if (unchanged && !force) {
@@ -724,6 +761,18 @@ const Vault = (() => {
       $("vault-mode-vault").classList.remove("active");
       graph?.setMode("local");
       applyGraph();
+    });
+    $("vault-layout-polar")?.addEventListener("click", () => {
+      layout = "polar";
+      $("vault-layout-polar").classList.add("active");
+      $("vault-layout-ternary").classList.remove("active");
+      spider?.setLayout("polar");
+    });
+    $("vault-layout-ternary")?.addEventListener("click", () => {
+      layout = "ternary";
+      $("vault-layout-ternary").classList.add("active");
+      $("vault-layout-polar").classList.remove("active");
+      spider?.setLayout("ternary");
     });
     $("vault-raw-btn")?.addEventListener("click", () => {
       rawMode = !rawMode;

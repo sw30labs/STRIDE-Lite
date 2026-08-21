@@ -263,12 +263,16 @@
       <section class="view" id="view-vault">
         <div class="view-head">
           <h1>VAULT <em>GRAPH</em></h1>
-          <p>Linked notes: models, scenarios, kill chains, and the applications they attach to.</p>
+          <p>Kill chains on a polar catalog map. LOCAL is still a one-hop graph. Models, scenarios, and apps live in the library.</p>
         </div>
         <div class="vault-toolbar">
           <div class="segmented" role="tablist" aria-label="Graph mode">
             <button class="segment active" id="vault-mode-vault" type="button">VAULT</button>
             <button class="segment" id="vault-mode-local" type="button">LOCAL</button>
+          </div>
+          <div class="segmented" id="vault-layout-toggle" role="tablist" aria-label="Catalog layout">
+            <button class="segment active" id="vault-layout-polar" type="button">POLAR</button>
+            <button class="segment" id="vault-layout-ternary" type="button">TERNARY</button>
           </div>
           <div class="vault-filters" id="vault-filters"></div>
           <div class="stride-chips" id="stride-chips"></div>
@@ -290,7 +294,10 @@
             <div id="vault-tree" class="vault-tree"></div>
           </div>
           <div class="panel vault-graph-panel">
-            <div id="vault-graph" class="vault-graph"></div>
+            <div id="vault-graph" class="vault-graph">
+              <div id="vault-spider" class="vault-spider"></div>
+              <div id="vault-network" class="vault-network" hidden></div>
+            </div>
             <div id="vault-list" class="vault-list" hidden></div>
           </div>
           <div class="panel vault-note-panel">
@@ -386,6 +393,7 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="/vendor/vis-network.min.js"></script>
   <script src="/graph.js"></script>
+  <script src="/spider.js"></script>
   <script src="/score.js"></script>
   <script src="/vault.js"></script>
   <script src="/app.js"></script>

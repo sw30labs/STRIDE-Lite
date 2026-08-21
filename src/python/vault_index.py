@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Any
 
 from campaign_score import compile_score
+from catalog_map import compile_catalog_map, point_features
 from killchains import build_catalog, slugify
 from utils import (
     BASE_DIR,
@@ -440,17 +441,24 @@ def build_vault(output_dir: Path | None = None) -> dict[str, Any]:
         )
 
     # Kill-chain templates from the catalog (present even with an empty output/)
+    map_by_id = {point["id"]: point for point in compile_catalog_map(catalog).get("points") or []}
     for template in catalog["templates"]:
+        mapped = map_by_id.get(template["id"]) or {}
         nodes.append(
             {
                 "id": template["id"],
                 "type": "killchain",
                 "label": template["name"],
-                "tags": ["killchain", *template["families"]],
+                "tags": ["killchain", *template["families"], mapped.get("slice") or ""],
                 "props": {
                     "steps": template["step_count"],
                     "families": ", ".join(template["families"]),
                     "order": template["order_quality"],
+                    "slice": mapped.get("slice") or "",
+                    "radius": mapped.get("radius"),
+                    "human": mapped.get("human"),
+                    "infra": mapped.get("infra"),
+                    "data": mapped.get("data"),
                 },
                 "group": "killchain",
             }
@@ -517,11 +525,13 @@ def project_note(note_id: str, output_dir: Path | None = None) -> dict[str, Any]
         template = next((item for item in catalog["templates"] if item["id"] == note_id), None)
         if not template:
             raise FileNotFoundError(note_id)
+        score = compile_score(template)
         return {
             "id": note_id,
             "type": "killchain",
             **template,
-            "score": compile_score(template),
+            "score": score,
+            "map": point_features(score),
             "disclaimer": catalog["disclaimer"],
         }
     if note_id.startswith("app:"):

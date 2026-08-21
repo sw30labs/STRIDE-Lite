@@ -43,6 +43,14 @@ sys.path.insert(0, str(ROOT / "src" / "python"))
 
 from attack_stix import enrich_technique, load_stix_index  # noqa: E402
 from campaign_score import compare_scores, compile_all, score_for  # noqa: E402
+from catalog_map import (  # noqa: E402
+    SLICES,
+    classify_slice,
+    compile_catalog_map,
+    lane_composition,
+    map_point_for,
+    point_features,
+)
 from score_export import export_score, render_html  # noqa: E402
 from killchains import (  # noqa: E402
     build_catalog,
@@ -227,6 +235,88 @@ class CampaignScoreTests(unittest.TestCase):
         self.assertEqual(result["a"]["slug"], "zero-day-exploit-new")
         self.assertGreaterEqual(result["jaccard"], 0)
         self.assertLessEqual(result["jaccard"], 1)
+
+
+# Polar / ternary catalog map — closed slices, compositional shares, laid-out coords
+class CatalogMapTests(unittest.TestCase):
+    EXPECTED = {
+        "LockBit Ransomware Attack": "ransomware",
+        "Predictive Ransomware": "ransomware",
+        "Scattered Spider Help-Desk Vishing to Cloud Identity Takeover (UNC3944) [New 2025]": "identity",
+        "AiTM Phishing-as-a-Service MFA Bypass (Tycoon 2FA / EvilProxy) [New 2025]": "identity",
+        "MNPI Exfil via Research RAG and Agent Tools [Buy-Side 2026]": "agent-ai",
+        "Overprivileged Researcher MCP and Agentic Tool-Chain Abuse [Buy-Side 2026]": "agent-ai",
+        "Integrity Incident via Poisoned RAG Copilot Output [Buy-Side 2026]": "agent-ai",
+        "RAG and Vector Store Poisoning with Embedding Exfiltration [AI SaaS 2026]": "agent-ai",
+        "Salt Typhoon Telecom Edge Espionage [New 2025]": "espionage",
+        "Volt Typhoon LOTL Pre-Positioning in Critical Infrastructure [New 2024]": "espionage",
+        "Supply Chain Attack (Log4Shell)": "exploit",
+        "[API] Public APIs (External Exposure) API Abuse DDoS Attack": "cloud-api",
+        "Snowflake-Style SaaS Tenant Compromise via Infostealer (UNC5537) [New 2024]": "cloud-api",
+        "Exploiting Misconfigured Cloud Services": "cloud-api",
+    }
+
+    def test_closed_six_slices_cover_catalog(self):
+        payload = compile_catalog_map()
+        self.assertEqual(len(payload["slices"]), 6)
+        self.assertEqual(len(payload["points"]), 37)
+        slice_ids = {item["id"] for item in payload["slices"]}
+        self.assertEqual(slice_ids, {key for key, _, _ in SLICES})
+        counts = {}
+        for point in payload["points"]:
+            self.assertIn(point["slice"], slice_ids)
+            self.assertEqual(point["radius"], point["data"])
+            self.assertEqual(round(point["human"] + point["infra"] + point["data"], 4), 1.0)
+            hypot = (point["polar_x"] ** 2 + point["polar_y"] ** 2) ** 0.5
+            self.assertGreaterEqual(hypot, 0.25)
+            self.assertLessEqual(hypot, 0.96)
+            self.assertGreaterEqual(point["ternary_x"], -0.001)
+            self.assertLessEqual(point["ternary_x"], 1.001)
+            self.assertGreaterEqual(point["ternary_y"], -0.001)
+            counts[point["slice"]] = counts.get(point["slice"], 0) + 1
+        self.assertEqual(sum(counts.values()), 37)
+        self.assertGreaterEqual(counts["agent-ai"], 10)
+        self.assertGreaterEqual(counts["ransomware"], 3)
+        self.assertGreaterEqual(counts["identity"], 2)
+        self.assertGreaterEqual(counts["cloud-api"], 6)
+        self.assertGreaterEqual(counts["espionage"], 3)
+        self.assertGreaterEqual(counts["exploit"], 4)
+
+    def test_named_templates_land_on_intended_slice(self):
+        payload = compile_catalog_map()
+        by_name = {point["name"]: point["slice"] for point in payload["points"]}
+        for name, slice_id in self.EXPECTED.items():
+            self.assertEqual(by_name[name], slice_id, name)
+
+    def test_identity_beats_ransomware_on_scattered_spider(self):
+        score = score_for("Scattered Spider Help-Desk Vishing to Cloud Identity Takeover (UNC3944) [New 2025]")
+        self.assertEqual(classify_slice(score), "identity")
+        self.assertIn("T1486", {glyph["tech_id"] for glyph in score["glyphs"]})
+
+    def test_layout_is_deterministic(self):
+        first = compile_catalog_map()
+        second = compile_catalog_map()
+        self.assertEqual(
+            [(p["id"], p["theta"], p["polar_x"], p["ternary_x"]) for p in first["points"]],
+            [(p["id"], p["theta"], p["polar_x"], p["ternary_x"]) for p in second["points"]],
+        )
+
+    def test_map_point_for_and_features(self):
+        point = map_point_for("Zero-Day Exploit [New]")
+        self.assertEqual(point["id"], "killchain:zero-day-exploit-new")
+        self.assertIn(point["slice"], {key for key, _, _ in SLICES})
+        feats = point_features(score_for("LockBit Ransomware Attack"))
+        self.assertEqual(feats["slice"], "ransomware")
+        comp = lane_composition(score_for("LockBit Ransomware Attack"))
+        self.assertEqual(round(comp["human"] + comp["infra"] + comp["data"], 4), 1.0)
+
+    def test_vault_killchain_nodes_carry_slice(self):
+        vault = build_vault(output_dir=VAULT_FIXTURES)
+        chains = [node for node in vault["nodes"] if node["type"] == "killchain"]
+        self.assertEqual(len(chains), 37)
+        self.assertTrue(all(node["props"].get("slice") for node in chains))
+        note = project_note("killchain:mnpi-exfil-via-research-rag-and-agent-tools-buy-side-2026")
+        self.assertEqual(note["map"]["slice"], "agent-ai")
 
 
 # Vault graph from fixtures — notes, traversal reject, empty-model warnings

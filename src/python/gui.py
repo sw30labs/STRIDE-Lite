@@ -42,6 +42,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 from attack_stix import stix_status
 from campaign_score import compare_scores, score_for
+from catalog_map import compile_catalog_map
 from killchains import build_catalog, compare_templates
 from utils import (
     BASE_DIR,
@@ -379,7 +380,11 @@ class GuiHandler(BaseHTTPRequestHandler):
             elif parsed.path == "/api/vault":
                 self.send_json(build_vault())
             elif parsed.path == "/api/killchains":
-                self.send_json(build_catalog())
+                catalog = build_catalog()
+                catalog["catalog_map"] = compile_catalog_map(catalog)
+                self.send_json(catalog)
+            elif parsed.path == "/api/killchains/catalog-map":
+                self.send_json(compile_catalog_map())
             elif parsed.path == "/api/killchains/score":
                 # Score one kill-chain by id= (404 if the template file is gone)
                 query = parse_qs(parsed.query)
