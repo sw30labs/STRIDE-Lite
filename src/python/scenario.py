@@ -12,6 +12,7 @@ import argparse
 import json
 import logging
 import os
+import sys
 import yaml
 import pandas as pd
 from typing import Dict, Any, Optional
@@ -21,6 +22,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import StateGraph, END
 from pydantic import BaseModel
 from langchain_community.callbacks import get_openai_callback
+import loopscope
 from utils import (
     Provider,
     application_prompt_vars,
@@ -416,22 +418,34 @@ def main():
     )
     print(f"Initial state: {initial_state.model_dump()}")
 
-    with get_openai_callback() as cb:
-        final_state = app.invoke(initial_state)
-    if cb.total_tokens:
-        logging.info(
-            f"Workflow Tokens - Prompt: {cb.prompt_tokens}, Completion: {cb.completion_tokens}, Total: {cb.total_tokens}"
-        )
+    # Dashboard on :7788; hold() only on a TTY so GUI subprocess jobs can exit
+    interactive = sys.stdout.isatty()
+    scope = loopscope.start(open_browser=interactive)
+    title = args.attack_template or os.path.basename(args.json_file)
+    scope_config = loopscope.attach(app, title=f"scenario {title}")
+    status = "error"
+    try:
+        with get_openai_callback() as cb:
+            final_state = app.invoke(initial_state, config=scope_config)
+        if cb.total_tokens:
+            logging.info(
+                f"Workflow Tokens - Prompt: {cb.prompt_tokens}, Completion: {cb.completion_tokens}, Total: {cb.total_tokens}"
+            )
 
-    if final_state.get('error'):
-        logging.error(f"Workflow failed: {final_state['error']}")
-    elif final_state.get('complete'):
-        logging.info(f"Workflow completed successfully. Output saved to: {final_state.get('final_output_path')}")
-    else:
-        logging.info(f"CVE Report:\n" + (final_state.get('cve_report') or "No CVE report generated"))
-        logging.info(f"CTI Report:\n" + (final_state.get('cti_report') or "No CTI report generated"))
-        logging.info(f"Threat Scenario Report:\n" + (final_state.get('threat_scenario_report') or "No Threat Scenario report generated"))
-        logging.warning("Workflow ended without completion or error.")
+        if final_state.get('error'):
+            logging.error(f"Workflow failed: {final_state['error']}")
+        elif final_state.get('complete'):
+            logging.info(f"Workflow completed successfully. Output saved to: {final_state.get('final_output_path')}")
+            status = "ok"
+        else:
+            logging.info(f"CVE Report:\n" + (final_state.get('cve_report') or "No CVE report generated"))
+            logging.info(f"CTI Report:\n" + (final_state.get('cti_report') or "No CTI report generated"))
+            logging.info(f"Threat Scenario Report:\n" + (final_state.get('threat_scenario_report') or "No Threat Scenario report generated"))
+            logging.warning("Workflow ended without completion or error.")
+    finally:
+        loopscope.finish(scope_config, status=status)
+    if interactive:
+        scope.hold()
 
 
 if __name__ == "__main__":

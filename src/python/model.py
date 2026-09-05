@@ -10,6 +10,7 @@ Description: STRIDE then DREAD for one APP-* id; LangGraph loops generate→QA u
 """
 import os
 import re
+import sys
 import json
 import yaml
 import asyncio
@@ -25,6 +26,7 @@ from langchain_core.messages import HumanMessage
 from langgraph.graph import StateGraph, END
 from langchain_community.callbacks import get_openai_callback
 from dotenv import load_dotenv
+import loopscope
 from utils import (
     Provider,
     application_context_block,
@@ -576,24 +578,35 @@ async def main(cmdb_id: str, provider: Provider = Provider.OPENAI):
         # architecture text first; description is the fallback if the CMDB row is thin
         system_desc = cmdb_info.get("architecture") or cmdb_info.get("description") or ""
         config = WorkflowState(cmdb_id=cmdb_id, system_desc=system_desc, provider=provider, cmdb_info=cmdb_info)
-        with get_openai_callback() as cb:
-            final_state = await app.ainvoke(config)
-        if cb.total_tokens:
-            logging.info(
-                f"Workflow Tokens - Prompt: {cb.prompt_tokens}, Completion: {cb.completion_tokens}, Total: {cb.total_tokens}"
-            )
+        # Dashboard on :7788; hold() only on a TTY so GUI subprocess jobs can exit
+        interactive = sys.stdout.isatty()
+        scope = loopscope.start(open_browser=interactive)
+        scope_config = loopscope.attach(app, title=f"STRIDE {cmdb_id}")
+        status = "error"
+        try:
+            with get_openai_callback() as cb:
+                final_state = await app.ainvoke(config, config=scope_config)
+            if cb.total_tokens:
+                logging.info(
+                    f"Workflow Tokens - Prompt: {cb.prompt_tokens}, Completion: {cb.completion_tokens}, Total: {cb.total_tokens}"
+                )
 
-        # ainvoke returns a dict; wrap it so attribute access works
-        final_state_obj = WorkflowState(**final_state)
+            # ainvoke returns a dict; wrap it so attribute access works
+            final_state_obj = WorkflowState(**final_state)
 
-        # Fail the run if QA/save never produced a path
-        if final_state_obj.error:
-            raise Exception(final_state_obj.error)
-        if not final_state_obj.saved_path:
-            raise Exception("No output file generated")
+            # Fail the run if QA/save never produced a path
+            if final_state_obj.error:
+                raise Exception(final_state_obj.error)
+            if not final_state_obj.saved_path:
+                raise Exception("No output file generated")
 
-        print(f"✅ Generated threat model for {cmdb_id} using {provider}")
-        print(f"📄 Output file: {final_state_obj.saved_path}")
+            print(f"✅ Generated threat model for {cmdb_id} using {provider}")
+            print(f"📄 Output file: {final_state_obj.saved_path}")
+            status = "ok"
+        finally:
+            loopscope.finish(scope_config, status=status)
+        if interactive:
+            scope.hold()
     except Exception as e:
         logging.critical(f"Workflow failed: {str(e)}")
         raise
