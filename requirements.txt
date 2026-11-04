@@ -8,4 +8,5 @@ langchain==1.3.15
 langchain-community==0.4.2
 langchain-openai==1.5.2
 langsmith==0.11.0
+httpx2==2.12.0  # VulnOps CVE-2026-84378: transitive dependency floor
 certifi==2026.10.18  # VulnOps GHSA-6q48-6c7w-9gw2: transitive dependency floor
